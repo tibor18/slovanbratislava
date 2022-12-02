@@ -1,0 +1,62 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity robot_moore_tb is
+--  Port ( );
+end robot_moore_tb;
+
+architecture Behavioral of robot_moore_tb is
+
+    -- Component Declaration for the Unit Under Test (UUT)
+    component robot_moore is
+        Port ( rst : in STD_LOGIC;
+               clk : in STD_LOGIC;
+               din : in STD_LOGIC;
+               dout : out STD_LOGIC);
+    end component robot_moore;
+
+    --Inputs
+    signal rst : std_logic := '0';
+    signal clk : std_logic := '0';
+    signal din : std_logic := '0';
+    
+    --Output
+    signal dout : std_logic;
+    
+    -- Clock period definitions
+    constant clk_period : time := 50 ns;
+    constant tester : std_logic_vector(0 to 15) := "0010100000100101";
+
+begin
+
+    -- Instantiate the Unit Under Test (UUT)
+    UUT: robot_moore port map (
+        clk => clk,
+        rst => rst,
+        din => din,
+        dout => dout
+    );
+    
+    -- Clock process definition
+    clk_process : process (clk)
+    begin
+        clk <= not clk after clk_period/2;
+    end process;
+    
+    -- Stimulus process
+    stim_proc: process
+    begin		
+        -- Hold reset state for 100 ns.        
+        rst <= '1', '0' after 100 ns;	
+        
+        wait until rst'event and rst = '0';
+        
+        for i in 0 to 15 loop
+            wait until clk'event and clk = '1';
+            din <= tester(i);	
+        end loop;
+    
+        wait;
+    end process;
+
+end Behavioral;
