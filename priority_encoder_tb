@@ -1,0 +1,140 @@
+----------------------------------------------------------------------------------
+-- Company:  DCI FEEI TUKE
+-- Engineer: Norbert �d�m
+--
+-- Create Date:
+-- Design Name:
+-- Module Name: priority_encoder_tb - Behavioral
+-- Project Name: vhdl_05
+-- Target Devices: xc7a35tcpg236-1
+-- Tool Versions:
+-- Description:
+--
+-- Dependencies:
+--
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+--
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+use IEEE.STD_LOGIC_TEXTIO.ALL;
+use STD.TEXTIO.all;
+
+entity priority_encoder_tb is
+--  Port ( );
+end priority_encoder_tb;
+
+architecture Behavioral of priority_encoder_tb is
+
+    -- Component Declaration for the Unit Under Test (UUT)
+    component priority_encoder is
+        generic ( width : natural := 2);
+        Port ( D : in STD_LOGIC_VECTOR (2**width-1 downto 0);
+               Y : out STD_LOGIC_VECTOR (width-1 downto 0);
+               v : out STD_LOGIC);
+    end component priority_encoder;
+
+    -- Inputs
+    signal D : std_logic_vector(3 downto 0) := (others => '0');  
+
+    -- Outputs
+    signal Y, Y_expected : std_logic_vector(1 downto 0);
+    signal v, v_expected : std_logic;
+
+    -- Clock
+    constant clk_period : time := 50 ns;
+    signal clk : std_logic;
+
+
+    -- buffer for storing the text from input read-file
+    file input_buf : text;  -- text is keyword
+
+begin
+
+    -- Instantiate the Unit Under Test (UUT)
+    UUT: priority_encoder generic map (width => 2) port map (D => D, Y => Y, v => v);
+
+    process is
+    begin
+        clk <= '0'; wait for clk_period/2;
+        clk <= '1'; wait for clk_period/2;
+    end process;
+
+    -- Stimulus process
+    stim_proc : process
+        variable read_col_from_input_buf : line; -- read lines one by one from input_buf
+
+        variable val_D : std_logic_vector(3 downto 0); -- to save col1 value of 4 bits
+        variable val_Y : std_logic_vector(1 downto 0); -- to save col2 value of 4 bits
+        variable val_v : std_logic;					   -- to save col3 value of 1 bit
+        variable val_dummy : character;
+
+        variable vectornum: integer := 0;
+        variable errors: integer := 0;
+
+    begin
+
+        -- if modelsim-project is created, then provide the relative path of
+        -- input-file (i.e. read_file_ex.tv) with respect to main project folder
+        file_open(input_buf, "g:\APS\2020ZS\cvicenia\projekty\vhdl_05\priority_encoder.tv", read_mode);
+        -- else provide the complete path for the input file as show below
+        -- file_open(input_buf, "g:\APS\2020ZS\cvicenia\projekty\vhdl_05\priority_encoder.tv", read_mode);
+
+        while not endfile(input_buf) loop
+            -- change vectors on rising edge
+            wait until rising_edge(clk);
+
+            readline(input_buf, read_col_from_input_buf);
+            read(read_col_from_input_buf, val_D);
+            read(read_col_from_input_buf, val_dummy);           -- read in the underscore character
+            read(read_col_from_input_buf, val_Y);
+            read(read_col_from_input_buf, val_dummy);           -- read in the underscore character
+            read(read_col_from_input_buf, val_v);
+
+            -- Pass the read values to signals
+            D <= val_D after 1ns;
+            Y_expected <= val_Y after 1 ns;
+            v_expected <= val_v after 1 ns;
+
+            -- check results on falling edge
+            wait until falling_edge(clk);
+
+            if (Y /= Y_expected) or (v /= v_expected) then
+                report "Error: Y = " & integer'image(to_integer(unsigned(Y))) & ", v = " & std_logic'image(v);
+                errors := errors + 1;
+            end if;
+
+            vectornum := vectornum + 1;
+        end loop;
+
+        file_close(input_buf);
+
+        wait until rising_edge(clk);
+        D <= "0-1X";
+        wait until falling_edge(clk);
+
+        if (errors = 0) then
+            report "NO ERRORS -- " & integer'image(vectornum) & " tests completed successfully."
+            severity note;
+        else
+            report integer'image(vectornum) & " tests completed, errors = " & integer'image(errors)
+            severity failure;
+        end if;
+        wait;
+    end process;
+
+end Behavioral;
