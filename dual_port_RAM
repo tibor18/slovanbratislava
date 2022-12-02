@@ -1,0 +1,32 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity dual_port_RAM is
+    generic (depth : positive := 2; width : positive := 3);
+    Port ( clk : in STD_LOGIC;
+           we : in STD_LOGIC;
+           rAddr : in STD_LOGIC_VECTOR(depth-1 downto 0);
+           wAddr : in STD_LOGIC_VECTOR(depth-1 downto 0);
+           Din : in STD_LOGIC_VECTOR (width-1 downto 0);
+           Dout : out STD_LOGIC_VECTOR (width-1 downto 0));
+end dual_port_RAM;
+
+architecture Behavioral of dual_port_RAM is
+
+    type RAM_type is array (2**depth-1 downto 0) of std_logic_vector (width-1 downto 0);
+    signal RAM : RAM_type;
+
+begin
+
+    process(clk) is
+    begin
+        if rising_edge(clk) then
+            if we = '1' then
+                RAM(to_integer(unsigned(wAddr))) <= Din;
+            end if;   
+        end if;
+    end process;
+    
+    Dout <= RAM(to_integer(unsigned(rAddr)));
+
+end Behavioral;
