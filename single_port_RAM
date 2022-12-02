@@ -1,0 +1,72 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Single port RAM has one input port (i.e. address line) which is used for both storing and retrieving the data
+-- Ports:
+    -- clk	: clock signal for synchronous RAM
+	-- we   : enable signal for reading or storing data to the RAM
+    -- Addr : input port for getting address
+    -- Din  : input data to be stored in RAM
+    -- Dout : output data read from RAM
+	--
+    -- depth : total number of elements to store (put exact number)
+    -- width : number of bits in each elements
+
+entity single_port_RAM is
+    generic (depth : positive := 2; width : positive := 3);
+    Port ( clk : in STD_LOGIC;
+           we : in STD_LOGIC;
+           Addr : in STD_LOGIC_VECTOR(depth-1 downto 0);
+           Din : in STD_LOGIC_VECTOR (width-1 downto 0);
+           Dout : out STD_LOGIC_VECTOR (width-1 downto 0));
+end single_port_RAM;
+
+/*
+architecture Behavioral_package of single_port_RAM is
+
+    package mem is new work.memories generic map (depth => depth, width => width);
+    
+begin
+
+    process(clk) is
+        variable RAM : mem.RAM_type;
+
+        attribute ram_style : string;
+        attribute ram_style of RAM : variable is "block";
+    begin
+        if rising_edge(clk) then
+            if we = '1' then
+                mem.write_RAM(RAM, Addr, Din);
+            else
+                mem.read_RAM(RAM, Addr, Dout);    
+            end if;
+        end if;
+    end process;
+
+end Behavioral_package;
+*/
+
+architecture Behavioral of single_port_RAM is
+
+    type RAM_type is array (2**depth-1 downto 0) of std_logic_vector (width-1 downto 0);
+    signal RAM : RAM_type;
+
+    --attribute ram_style : string;
+    --attribute ram_style of RAM : signal is "block";
+    --attribute ram_style of RAM : signal is "distributed";
+    --attribute ram_style of RAM : signal is "registers";
+
+begin
+
+    process(clk) is
+    begin
+        if rising_edge(clk) then
+            if we = '1' then
+                RAM(to_integer(unsigned(Addr))) <= Din;
+            end if;   
+        end if;
+    end process;
+    
+    Dout <= RAM(to_integer(unsigned(Addr)));
+
+end Behavioral;
