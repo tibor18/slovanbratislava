@@ -1,0 +1,39 @@
+library IEEE;
+use IEEE.Std_logic_1164.all;
+use IEEE.Numeric_Std.all;
+
+entity johnson_counter_tb is
+end;
+
+architecture bench of johnson_counter_tb is
+
+component johnson_counter
+    generic(width : positive := 4);
+    Port(clk,clear : in STD_LOGIC;
+         Q : out STD_LOGIC_VECTOR(width-1 downto 0));
+end component;
+
+signal clk : STD_LOGIC := '0';
+signal clear : STD_LOGIC := '1';
+signal Q: STD_LOGIC_VECTOR(3 downto 0);
+
+begin
+
+ uut: johnson_counter generic map ( width => 4 )
+                          port map ( clk   => clk,
+                                     clear => clear,
+                                     Q     => Q );
+process
+begin
+    wait for 5ns;
+    clk <= not clk;
+end process a;
+  
+process
+begin
+    clear <= '1';
+    wait for 100ns;
+    clear <= not clear;
+    wait;
+end process b;
+end;
