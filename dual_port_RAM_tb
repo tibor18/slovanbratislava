@@ -1,0 +1,71 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity dual_port_RAM_tb is
+--  Port ( );
+end dual_port_RAM_tb;
+
+architecture Behavioral of dual_port_RAM_tb is
+
+    -- Component Declaration for the Unit Under Test (UUT)
+    constant depth : positive := 2;
+    constant width : positive := 3;
+    component dual_port_RAM is
+        generic (depth : positive := depth; width : positive := width);
+        Port ( clk : in STD_LOGIC;
+               we : in STD_LOGIC;
+               rAddr : in STD_LOGIC_VECTOR(depth-1 downto 0);
+               wAddr : in STD_LOGIC_VECTOR(depth-1 downto 0);
+               Din : in STD_LOGIC_VECTOR (width-1 downto 0);
+               Dout : out STD_LOGIC_VECTOR (width-1 downto 0));
+    end component dual_port_RAM;
+    
+    -- Outputs
+    signal Dout : STD_LOGIC_VECTOR (width-1 downto 0);
+    
+    -- Inputs
+    signal we : STD_LOGIC := '0';    
+    signal rAddr : STD_LOGIC_VECTOR(depth-1 downto 0) := (others => '0');
+    signal wAddr : STD_LOGIC_VECTOR(depth-1 downto 0) := (others => '0');
+    signal Din : STD_LOGIC_VECTOR (width-1 downto 0) := (others => '0');
+    
+    -- Clock 
+    signal clk : STD_LOGIC := '1';
+    constant clk_period : time := 10 ns;
+
+begin
+
+    -- Instantiate the Unit Under Test (UUT)
+    UUT : dual_port_RAM 
+        generic map (depth => depth, width => width) 
+        port map (clk => clk, we => we, rAddr => rAddr, wAddr => wAddr, Din => Din, Dout => Dout);
+
+    -- Clock process definition
+    clk_process : process (clk)
+    begin
+        clk <= not clk after clk_period/2;
+    end process;
+
+    stim_proc : process is
+    begin
+        
+        we <= '0';
+        wait for 100 ns;
+        we <= '1';
+        
+        for d in 0 to depth**2-1 loop
+            Din <= std_logic_vector(to_unsigned(d, Din'length));
+            wAddr <= std_logic_vector(to_unsigned(d, wAddr'length));
+            wait for clk_period;
+        end loop;
+        
+        for a in depth**2-1 downto 0 loop  
+            rAddr <= std_logic_vector(to_unsigned(a, rAddr'length));
+            wait for clk_period;
+        end loop;
+        
+        wait;        
+    end process;
+
+
+end Behavioral;
