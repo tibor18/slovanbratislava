@@ -1,0 +1,76 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity single_port_RAM_tb is
+--  Port ( );
+end single_port_RAM_tb;
+
+architecture Behavioral of single_port_RAM_tb is
+
+    -- Component Declaration for the Unit Under Test (UUT)
+    constant depth : positive := 2;
+    constant width : positive := 3;
+    component single_port_RAM is
+        generic (depth : positive := depth; width : positive := width);
+        Port ( clk : in STD_LOGIC;
+               we : in STD_LOGIC;
+               Addr : in STD_LOGIC_VECTOR(depth-1 downto 0);
+               Din : in STD_LOGIC_VECTOR (width-1 downto 0);
+               Dout : out STD_LOGIC_VECTOR (width-1 downto 0));
+    end component single_port_RAM;
+    
+    -- Outputs
+    signal Dout : STD_LOGIC_VECTOR (width-1 downto 0);
+    
+    -- Inputs
+    signal we : STD_LOGIC := '0';    
+    signal Addr : STD_LOGIC_VECTOR(depth-1 downto 0) := (others => '0');
+    signal Din : STD_LOGIC_VECTOR (width-1 downto 0) := (others => '0');
+    
+    -- Clock 
+    signal clk : STD_LOGIC := '1';
+    constant clk_period : time := 10 ns;
+    
+    -- Which architecture we'll use
+    -- for UUT : single_port_RAM use entity work.single_port_RAM(Behavioral); 
+
+begin
+
+    -- Instantiate the Unit Under Test (UUT)
+    UUT : single_port_RAM 
+        generic map (depth => depth, width => width) 
+        port map (clk => clk, we => we, Addr => Addr, Din => Din, Dout => Dout);
+
+    -- Clock process definition
+    clk_process : process (clk)
+    begin
+        clk <= not clk after clk_period/2;
+    end process;
+
+    stim_proc : process is
+        variable test : integer := 0;
+    begin
+        we <= '0';
+        wait for 100 ns;
+        we <= '1';
+        
+        for d in 0 to width**2-1 loop
+            Din <= std_logic_vector(to_unsigned(d, Din'length));
+            for a in 0 to depth**2-1 loop  
+                Addr <= std_logic_vector(to_unsigned(a, Addr'length));
+                wait for clk_period;
+            end loop;
+        end loop;
+        wait;
+    end process;
+
+end Behavioral;
