@@ -1,0 +1,192 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity divisibility_by_5_tb is
+end;
+
+architecture bench of divisibility_by_5_tb is
+
+component divisibility_by_5
+    Port (rst : in STD_LOGIC;
+          clk : in STD_LOGIC;
+          din : in STD_LOGIC;
+          dout : out STD_LOGIC);
+end component;
+
+signal rst: STD_LOGIC;
+signal clk: STD_LOGIC;
+signal din: STD_LOGIC;
+signal dout: STD_LOGIC;
+
+constant clk_period: time := 10 ns;
+  
+signal stop_the_clock: boolean;
+  
+constant test15 : std_logic_vector(0 to 3) := "1111"; --dout='1', finish in S0
+constant test186 : std_logic_vector(0 to 7)   :="10111010";
+constant test487 : std_logic_vector(0 to 8)   :="111100111";
+constant test968 : std_logic_vector(0 to 9)   :="1111001000";
+constant test1139 : std_logic_vector(0 to 10) :="10001110011";
+constant test1355 : std_logic_vector(0 to 10) :="10101001011";
+
+begin
+
+ uut: divisibility_by_5 port map ( rst  => rst,
+                                    clk  => clk,
+                                    din  => din,
+                                    dout => dout );
+
+test : process
+  
+begin
+
+    rst <= '1';
+    wait for 5 ns;
+    rst <= '0';
+    wait for 5 ns;
+
+--------------------
+-- 15
+
+    rst <= '1', '0' after clk_period;
+    din <= '0'; 
+    wait until rst'event and rst = '0';
+    
+    for i in 0 to 3 loop
+    
+        wait until clk'event and clk = '1';
+        din <= test15(i);   
+        
+    end loop;
+     
+    wait until clk'event and clk = '1';
+    wait until clk'event and clk = '0';   
+         
+    assert dout = '1'
+        report "Wrong result for 15."
+        severity failure;
+        
+    rst <= '1', '0' after clk_period;  
+    din <= '0'; 
+    wait until rst'event and rst = '0';
+    
+----------------------- 
+-- 186
+     
+    for i in 0 to 7 loop
+     
+        wait until clk'event and clk = '1';
+        din <= test186(i);   
+         
+    end loop;
+      
+    wait until clk'event and clk = '1';
+    wait until clk'event and clk = '0';   
+          
+    assert dout = '0'
+        report "Wrong result for 186."
+        severity failure;
+         
+    rst <= '1', '0' after clk_period;
+    din <= '0';   
+    wait until rst'event and rst = '0';
+     
+----------------------- 
+-- 487
+      
+    for i in 0 to 8 loop
+      
+        wait until clk'event and clk = '1';
+        din <= test487(i);   
+          
+    end loop;
+       
+    wait until clk'event and clk = '1';
+    wait until clk'event and clk = '0';   
+       
+    assert dout = '0'
+        report "Wrong result for 487."
+        severity failure;
+          
+    rst <= '1', '0' after clk_period;
+    din <= '0';   
+    wait until rst'event and rst = '0';
+      
+----------------------- 
+-- 968
+       
+    for i in 0 to 9 loop
+       
+        wait until clk'event and clk = '1';
+        din <= test968(i);   
+           
+    end loop;
+        
+    wait until clk'event and clk = '1';
+    wait until clk'event and clk = '0';   
+            
+    assert dout = '0'
+        report "Wrong result for 968."
+        severity failure;
+           
+    rst <= '1', '0' after clk_period;
+    din <= '0';   
+    wait until rst'event and rst = '0';
+       
+----------------------- 
+--1139
+
+    for i in 0 to 10 loop
+    
+        wait until clk'event and clk = '1';
+        din <= test1139(i);
+        
+    end loop;
+
+    wait until clk'event and clk = '1';
+    wait until clk'event and clk = '0';
+       
+    assert dout = '0' 
+        report "Wrong result for 1139." 
+        severity failure;
+            
+    rst <= '1', '0' after clk_period;
+    din <= '0';
+    wait until rst'event and rst = '0';
+    
+ ------------------------
+ -- 1355
+ 
+    for i in 0 to 10 loop
+    
+        wait until clk'event and clk = '1';
+        din <= test1355(i);
+        
+    end loop;
+ 
+    wait until clk'event and clk = '1';
+    wait until clk'event and clk = '0';
+        
+    assert dout = '1' 
+        report "Wrong result for 1355." 
+        severity failure;
+             
+    rst <= '1', '0' after clk_period;
+    din <= '0';
+    wait until rst'event and rst = '0';
+    
+------------------------
+
+stop_the_clock <= true;
+wait;
+end process;
+
+ clocking: process
+begin
+    while not stop_the_clock loop
+        clk <= '0', '1' after clk_period / 2;
+        wait for clk_period;
+    end loop;
+    wait;    
+end process;
+end;
