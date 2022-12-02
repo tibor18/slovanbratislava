@@ -1,0 +1,92 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity one_hot_encoder_tb is
+--  Port ( );
+end one_hot_encoder_tb;
+
+architecture Behavioral of one_hot_encoder_tb is
+
+    -- Component Declaration for the Unit Under Test (UUT)
+    component one_hot_encoder is
+        generic ( width : natural := 4);
+        Port ( D : in STD_LOGIC_VECTOR (width-1 downto 0);
+               Y : out STD_LOGIC_VECTOR (width-1 downto 0);
+               v : out STD_LOGIC);
+    end component one_hot_encoder;
+    
+    -- Inputs
+    signal D : std_logic_vector(3 downto 0) := (others => '0');
+
+    -- Outputs
+    signal Y : std_logic_vector(3 downto 0);
+    signal v : std_logic;
+
+    -- Clock period
+    constant clk_period : time := 10 ns;
+    
+    -- declare record type
+    type test_vector is record
+        D : STD_LOGIC_VECTOR (3 downto 0);
+        Y : STD_LOGIC_VECTOR (3 downto 0);
+        v : std_logic;
+    end record; 
+
+    type test_vector_array is array (natural range <>) of test_vector;
+    constant test_vectors : test_vector_array := (
+        -- D,   Y,    v   -- positional method is used below
+        (X"0", X"0", '0'), -- or (D => X"0", Y => X"0", v => '0')
+        (X"1", X"1", '1'),
+        (X"2", X"2", '1'),
+        (X"3", X"2", '1'),
+        (X"4", X"4", '1'),
+        (X"5", X"4", '1'),
+        (X"6", X"4", '1'),
+        (X"7", X"4", '1'),
+        (X"8", X"8", '1'),
+        (X"9", X"8", '1'),
+        (X"A", X"8", '1'),
+        (X"B", X"8", '1'),
+        (X"C", X"8", '1'),
+        (X"D", X"8", '1'),
+        (X"E", X"8", '1'),
+        (X"F", X"8", '1')
+        );
+
+begin
+
+    -- Instantiate the Unit Under Test (UUT)
+    UUT: one_hot_encoder generic map (width => 4) port map (D => D, Y => Y, v => v);
+
+    -- Stimulus process
+    stim_proc : process
+    begin    
+        -- Hold reset state for 100 ns.
+        wait for 100 ns;    
+
+        for i in 0 to 15 loop
+            D <= test_vectors(i).D;  -- signal D = i^th-row-value of test_vector's D
+            wait for 2*clk_period;
+            
+            assert ((Y = test_vectors(i).Y ) and (v = test_vectors(i).v ))
+                report "test_vector " & integer'image(i) & " failed " & 
+                                      " for input D = " & integer'image(to_integer(unsigned(D))) & 
+                                      " and v = " & std_logic'image(v)
+                severity error;   
+        end loop;    
+        
+        D <= "0-1X";            
+   
+        wait; 
+    end process;    
+
+end Behavioral;
